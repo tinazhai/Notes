@@ -1,0 +1,20 @@
+#recount date
+
+library(dplyr)
+d1=data.frame(id=c("Becky","Becky","John","John"),
+              date=c("2019-01-01","2019-12-20","2019-01-01","2019-01-02"))
+d2=count(d1,id)
+d1$id=as.character(d1$id)
+d2$id=as.character(d2$id)
+
+recount=function(df1,df2){
+for (i in 1:nrow(df2)){
+    sub=filter(df1,id==df2[[i,1]])
+    if(df2[[i,2]]==2 && abs(as.Date(sub[[1,2]])-as.Date(sub[[2,2]]))>330){
+    df2[[i,2]]=df2[[i,2]]-1
+    } 
+}
+df2
+}
+
+d3=recount(d1,d2)
