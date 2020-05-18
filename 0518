@@ -1,0 +1,150 @@
+---
+title: "2019 vs 2020 Premium Market Performance"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: flatly
+---
+```{js}
+$('.navbar-inverse').removeClass('navbar-inverse').addClass('navbar-default');
+```
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(plotly)
+library(ggpubr)
+```
+
+```{r}
+df=read_xlsx("C:/Users/tina.zhai/Desktop/0518/data.xlsx")
+
+df2=df[-c(1,15,29,43),]%>%
+  mutate(date=as.Date(date))%>%
+  select(company:date,12)
+
+df3=df2%>%
+  pivot_longer(c(premium,sum19), names_to = "year", 
+               values_to = "value")%>%
+  mutate(year=recode(year,"premium"="2020","sum19"="2019"),
+         value=round(value/1000,1))
+df4=df3%>%
+  mutate(compyr=paste(company,year))
+```
+
+Page 1
+=====================================================================
+
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### Premium Value Growth in 2019/2020
+
+```{r, fig.width=10,fig.height=7}
+p1=df4%>%
+  filter(company=="AXATP")%>%
+  ggplot(aes(x=date))+
+  geom_line(aes(y=value,color=company,group=compyr,linetype=compyr),size=1.8,alpha=0.7)+
+  geom_point(aes(y=value,color=company))+guides(color=FALSE)+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b")+
+  theme_minimal()+
+  geom_text(aes(y=value,label=value),size=3)+ 
+  labs(x="",y="Premium (10 million")
+
+p2=df4%>%
+  filter(company!="AXATP")%>%
+  ggplot(aes(x=date))+
+  geom_line(aes(y=value,color=company,group=compyr,linetype=year),size=1.8,alpha=0.5)+
+  geom_point(aes(y=value,color=company))+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b")+
+  theme_minimal()+
+  geom_text(aes(y=value,label=value),size=3)+ 
+  labs(x="",y="Premium (10 million")+
+  scale_fill_manual(values=c(Market="turquoise",BigThree="forestgreen","Market W/O BigThree"="purple"))+
+  scale_color_manual(values=c(Market="turquoise",BigThree="forestgreen","Market W/O BigThree"="purple"))
+ggarrange(p1,p2,nrow=2)  
+
+```
+
+Page 2 {data-oriention=rows}
+======================================================================
+
+Row {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### WOW Premium Growth in 2020
+
+```{r}
+g2=ggplot(data=df2,aes(x=date))+
+  geom_line(aes(y=WOW,color=company,group=company),size=1.8,alpha=0.7)+
+  geom_point(aes(y=WOW,color=company))+
+  scale_x_date(date_breaks = "1 month", 
+               date_labels = "%b")+
+  theme_minimal()+
+  geom_text(aes(y=WOW,label=paste(round(WOW,3)*100,"%")),size=3)+
+  labs(x="")
+ggplotly(g2)
+```
+
+### YOY Premium Growth in 2020
+
+```{r}
+g1=ggplot(data=df2,aes(x=date))+
+  geom_line(aes(y=YOY,color=company,group=company),size=1.8,alpha=0.7)+
+  geom_point(aes(y=YOY,color=company))+
+  scale_x_date(date_breaks = "1 month", 
+                date_labels = "%b")+
+  theme_minimal()+
+  geom_text(aes(y=YOY,label=paste(round(YOY,3)*100,"%")),size=3)+
+  labs(x="")
+ggplotly(g1)
+```
+
+
+
+```{r,include=FALSE}
+df5=read_xlsx("C:/Users/tina.zhai/Desktop/0518/rank.xlsx")%>%
+  mutate(
+        tem_rank=min_rank(premium),
+         rank=68-tem_rank)%>%
+  select(-tem_rank)
+df5$YTD=as.numeric(df5$YTD)
+df5$YTD=ifelse(is.na(df5$YTD),0,df5$YTD)
+df5$label=ifelse(df5$YTD>0,"Increase","Decrease")
+```
+
+Page 3
+======================================================
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### Company Rank and YTD
+```{r,fig.width=10,fig.height=8}
+d1=df5%>%
+  filter(rank<20)%>%
+  mutate(company=fct_reorder(company,desc(rank)))%>%
+  ggplot(aes(x=premium/1000,y=company))+
+  geom_bar(stat="identity",aes(fill=company))+
+  theme_minimal() +
+  geom_text(aes(label=round(premium/1000,1)),size=3)+
+  theme(legend.position = 'none')+
+  labs(x="Premium (10 Million)",y="Company Rank")
+
+d2=df5%>%
+  filter(rank<20)%>%
+  mutate(company=fct_reorder(company,desc(rank)))%>%
+ggplot( aes(x=`company`, y=YTD, label=YTD)) +
+  geom_segment(aes(y=0,xend=company,yend=YTD),size=1)+
+  geom_point(stat='identity',aes(col=label),size=7) +
+    geom_text(aes(y=YTD,label=paste(round(YTD*100,1),"%")),
+              color="black", size=3) +
+  ylim(-0.25, 0.25) +labs(y="")+
+  coord_flip()+
+  scale_color_manual(values = c("Increase"="#00ba38", "Decrease"="#f8766d"))
+
+ggarrange(d1,d2,ncol = 2)
+
+```
+
