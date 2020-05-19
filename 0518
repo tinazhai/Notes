@@ -25,43 +25,68 @@ df2=df[-c(1,15,29,43),]%>%
   mutate(date=as.Date(date))%>%
   select(company:date,12)
 
-df3=df2%>%
+df4=df2%>%
   pivot_longer(c(premium,sum19), names_to = "year", 
                values_to = "value")%>%
   mutate(year=recode(year,"premium"="2020","sum19"="2019"),
-         value=round(value/1000,1))
-df4=df3%>%
+         value=round(value/1000,1))%>%
   mutate(compyr=paste(company,year))
+
 ```
 
-Page 1
+Page 1 {data-oriention=rows}
 =====================================================================
 
-Column {data-width=600}
+Row {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
-### Premium Value Growth in 2019/2020
+### GWP in 2019/2020
+```{r,fig.width=10}
+df6=read_xlsx("C:/Users/tina.zhai/Desktop/0518/GWP.xlsx")%>%
+  mutate(Year=as.factor(Year),
+         AXATP=round(AXATP/1000,2),
+         Market=round(Market/1000,1))
 
-```{r, fig.width=10,fig.height=7}
+coeff=0.01
+
+df6%>%
+  ggplot(aes(x=date))+scale_linetype_manual(values=c(2,1))+
+  geom_line(aes(y=Market,group=Year,linetype=Year),color="turquoise",size=1.2,alpha=0.7)+
+  geom_line(aes(y=AXATP/coeff,group=Year,linetype=Year),color="brown1",size=1.2,alpha=0.7)+
+theme_minimal()+
+  guides(color=FALSE,alpha=FALSE)+labs(x="")+
+  scale_y_continuous(name="Market GWP (10 million RMB)",
+                     sec.axis = sec_axis(~.*coeff,name="AXATP GWP(10 million RMB)"))+ theme(
+    axis.title.y = element_text(color = "turquoise"),
+    axis.title.y.right = element_text(color = "brown1"),
+    axis.text.y.left = element_text(color = "turquoise"),
+    axis.text.y.right = element_text(color = "brown1")
+  ) +
+  geom_text(aes(y=Market,label=Market),size=3)+
+  geom_text(aes(y=AXATP/coeff,label=AXATP),size=3)
+```
+
+### Old GWP with four groups
+```{r,fig.width=10}
 p1=df4%>%
   filter(company=="AXATP")%>%
   ggplot(aes(x=date))+
-  geom_line(aes(y=value,color=company,group=compyr,linetype=compyr),size=1.8,alpha=0.7)+
+  geom_line(aes(y=value,color=company,group=compyr,linetype=compyr),size=1.5,alpha=0.7)+
   geom_point(aes(y=value,color=company))+guides(color=FALSE)+
   scale_x_date(date_breaks = "1 month", date_labels = "%b")+
   theme_minimal()+
   geom_text(aes(y=value,label=value),size=3)+ 
-  labs(x="",y="Premium (10 million")
+  labs(x="",y="GWP (10 million RMB)")
 
 p2=df4%>%
   filter(company!="AXATP")%>%
   ggplot(aes(x=date))+
-  geom_line(aes(y=value,color=company,group=compyr,linetype=year),size=1.8,alpha=0.5)+
+  geom_line(aes(y=value,color=company,group=compyr,linetype=year),size=1.5,alpha=0.5)+
   geom_point(aes(y=value,color=company))+
   scale_x_date(date_breaks = "1 month", date_labels = "%b")+
   theme_minimal()+
   geom_text(aes(y=value,label=value),size=3)+ 
-  labs(x="",y="Premium (10 million")+
+  labs(x="",y="GWP (10 million RMB)")+
   scale_fill_manual(values=c(Market="turquoise",BigThree="forestgreen","Market W/O BigThree"="purple"))+
   scale_color_manual(values=c(Market="turquoise",BigThree="forestgreen","Market W/O BigThree"="purple"))
 ggarrange(p1,p2,nrow=2)  
@@ -77,13 +102,15 @@ Row {.tabset .tabset-fade}
 ### WOW Premium Growth in 2020
 
 ```{r}
-g2=ggplot(data=df2,aes(x=date))+
+g2=df2[-c(1,14,27,40),]%>%
+  ggplot(aes(x=date))+
   geom_line(aes(y=WOW,color=company,group=company),size=1.8,alpha=0.7)+
   geom_point(aes(y=WOW,color=company))+
   scale_x_date(date_breaks = "1 month", 
                date_labels = "%b")+
   theme_minimal()+
-  geom_text(aes(y=WOW,label=paste(round(WOW,3)*100,"%")),size=3)+
+  geom_text(data=df2[-1,] %>% filter(company=="AXATP"),
+            aes(y=WOW,label=paste(round(WOW,3)*100,"%")),size=3)+
   labs(x="")
 ggplotly(g2)
 ```
@@ -91,15 +118,36 @@ ggplotly(g2)
 ### YOY Premium Growth in 2020
 
 ```{r}
-g1=ggplot(data=df2,aes(x=date))+
+g1=df2[-c(1,14,27,40),]%>%
+  ggplot(aes(x=date))+
   geom_line(aes(y=YOY,color=company,group=company),size=1.8,alpha=0.7)+
   geom_point(aes(y=YOY,color=company))+
   scale_x_date(date_breaks = "1 month", 
                 date_labels = "%b")+
   theme_minimal()+
-  geom_text(aes(y=YOY,label=paste(round(YOY,3)*100,"%")),size=3)+
+  geom_text(data=df2[-1,] %>% filter(company=="AXATP"),
+            aes(y=YOY,label=paste(round(YOY,3)*100,"%")),size=3)+
   labs(x="")
 ggplotly(g1)
+```
+
+### WOW Premium Growth in 2019
+
+```{r}
+df7=df%>%
+  select(company,date,WOW19)%>%
+  mutate(date=as.Date(date),WOW19=as.numeric(WOW19))%>%
+  na.omit()
+
+g3=df7%>%
+  ggplot(aes(x=date))+
+  geom_line(aes(y=WOW19,color=company,group=company),size=1.8,alpha=0.7)+
+  geom_point(aes(y=WOW19,color=company))+
+  scale_x_date(date_breaks = "1 month", 
+                date_labels = "%b")+
+  theme_minimal()+geom_text(data=df7%>%filter(company=="AXATP"), aes(y=WOW19,label=paste(round(WOW19,3)*100,"%")),size=3)+
+  labs(x="")
+ggplotly(g3)
 ```
 
 
@@ -147,4 +195,33 @@ ggplot( aes(x=`company`, y=YTD, label=YTD)) +
 ggarrange(d1,d2,ncol = 2)
 
 ```
+
+Page 4
+======================================================
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### AXATP vs BigThree Market Proportion
+```{r,fig.width=10}
+df8=read_xlsx("C:/Users/tina.zhai/Desktop/0518/prop.xlsx")%>%
+  mutate(date=as.Date(date),
+         year=as.factor(year))
+coeff2=0.01
+df8%>%
+  ggplot(aes(x=date))+scale_linetype_manual(values=c(2,1))+
+  geom_line(aes(y=BigThree,group=year,linetype=year),color="forestgreen",size=1.2,alpha=0.7)+
+  geom_line(aes(y=AXATP/coeff2,group=year,linetype=year),color="brown1",size=1.2,alpha=0.7)+
+theme_minimal()+
+  guides(color=FALSE,alpha=FALSE)+labs(x="")+
+  scale_y_continuous(name="Big Three Proportion",
+                     sec.axis = sec_axis(~.*coeff,name="AXATP Proportion"))+ theme(
+    axis.title.y = element_text(color = "forestgreen"),
+    axis.title.y.right = element_text(color = "brown1"),
+    axis.text.y.left = element_text(color = "forestgreen"),
+    axis.text.y.right = element_text(color = "brown1")
+  )+
+  geom_text(aes(y=BigThree,label=paste(round(BigThree*100,1),"%")),size=3)+
+  geom_text(aes(y=AXATP/coeff2,label=paste(round(AXATP*100,2),"%")),size=3)
+```
+
 
