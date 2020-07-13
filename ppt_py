@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.enum.shapes import MSO_SHAPE
+from PIL import Image
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
+import pandas as pd
+
+
+# In[20]:
+
+
+test="eng.pptx"
+
+
+# In[21]:
+
+
+presso = Presentation(test)
+
+
+# ## Picture
+
+# In[22]:
+
+
+def repimg(img, fileloc, sli):
+    x, y, cx, cy=img.left, img.top, img.width, img.height
+    img.crop_right=1
+    pic=sli.shapes.add_picture(fileloc, x, y, cx, cy)
+
+
+# In[23]:
+
+
+#the shape index is layer sequence, 0 is the bottom
+img=[presso.slides[0].shapes[0], presso.slides[0].shapes[1],
+     presso.slides[1].shapes[2], presso.slides[1].shapes[1], presso.slides[1].shapes[0],
+    presso.slides[2].shapes[1],  presso.slides[2].shapes[0]]
+
+fileloc=["p11.png","p12.png","p21.png","p22.png","p23.png","p31.png","p32.png"]
+
+sli=[presso.slides[0],presso.slides[0],presso.slides[1],presso.slides[1],presso.slides[1],
+    presso.slides[2],presso.slides[2]]
+
+
+# In[24]:
+
+
+for i in range(0,7):
+    repimg(img[i],fileloc[i],sli[i])
+
+
+# ## Text frame
+
+# In[25]:
+
+
+# print text in page 1
+for shape in presso.slides[0].shapes:
+    if not shape.has_text_frame:
+        continue
+    print(presso.slides[0].shapes.index(shape),":",shape.text_frame.text)
+
+
+# In[8]:
+
+
+# print text in page 2
+for shape in presso.slides[1].shapes:
+    if not shape.has_text_frame:
+        continue
+    print(presso.slides[1].shapes.index(shape),":",shape.text_frame.text)
+
+
+# In[26]:
+
+
+# print text in page 3
+for shape in presso.slides[2].shapes:
+    if not shape.has_text_frame:
+        continue
+    print(presso.slides[2].shapes.index(shape),":",shape.text_frame.text)
+
+
+# In[27]:
+
+
+#replace text without changing format
+def replace(paragraph, new_text):
+    p = paragraph._p  
+    # remove all but the first run
+    for idx, run in enumerate(paragraph.runs):
+        if idx == 0:
+            continue
+        p.remove(run._r)
+    paragraph.runs[0].text = new_text
+
+
+# In[16]:
+
+
+text=pd.read_csv("num.csv").x
+text
+
+
+# In[28]:
+
+
+para=[presso.slides[0].shapes[17].text_frame.paragraphs[0], presso.slides[0].shapes[19].text_frame.paragraphs[0],
+     presso.slides[0].shapes[22].text_frame.paragraphs[0], presso.slides[0].shapes[7].text_frame.paragraphs[0],
+     presso.slides[0].shapes[9].text_frame.paragraphs[0], presso.slides[0].shapes[12].text_frame.paragraphs[0],
+     presso.slides[2].shapes[17].text_frame.paragraphs[0], presso.slides[2].shapes[19].text_frame.paragraphs[0],
+     presso.slides[2].shapes[22].text_frame.paragraphs[0], presso.slides[2].shapes[7].text_frame.paragraphs[0],
+     presso.slides[2].shapes[9].text_frame.paragraphs[0], presso.slides[2].shapes[12].text_frame.paragraphs[0],
+     presso.slides[1].shapes[9].text_frame.paragraphs[0], presso.slides[1].shapes[9].text_frame.paragraphs[1],
+     presso.slides[1].shapes[9].text_frame.paragraphs[2], presso.slides[1].shapes[9].text_frame.paragraphs[3],
+     presso.slides[1].shapes[9].text_frame.paragraphs[4], presso.slides[1].shapes[9].text_frame.paragraphs[5],
+     presso.slides[1].shapes[9].text_frame.paragraphs[6], presso.slides[1].shapes[9].text_frame.paragraphs[7],
+     presso.slides[1].shapes[9].text_frame.paragraphs[8], presso.slides[1].shapes[9].text_frame.paragraphs[9]]
+
+
+# In[29]:
+
+
+for i in range (0,22):
+    replace(para[i],text[i])
+
+
+# In[30]:
+
+
+date1="(7/01 ~ 7/10)"
+date2="Branch Performance (6/10 ~ 7/10)"
+replace(presso.slides[0].shapes[14].text_frame.paragraphs[1],date1)
+replace(presso.slides[0].shapes[24].text_frame.paragraphs[1],date1)
+replace(presso.slides[2].shapes[14].text_frame.paragraphs[1],date1)
+replace(presso.slides[2].shapes[24].text_frame.paragraphs[1],date1)
+replace(presso.slides[1].shapes[4].text_frame.paragraphs[0],date2)
+
+
+# In[31]:
+
+
+presso.save("test2.pptx")
+
+
