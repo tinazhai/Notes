@@ -10,7 +10,7 @@ A real clinical context is set for this project, which is borrowed from Gandhi a
 
 # Methodology
 
-## design parameters
+## Design Parameters
 
 $$
 \begin{aligned}
@@ -21,6 +21,7 @@ n_{jk}: & \text{total number of participants at dose} A_jB_k\\
 y_{jk}: & \tetx{number of participants having DLT as dose} A_jB_k\\
 p_{jk}: & \text{observed DLT rate}\\
 &=\frac{y_{jk}}{n_{jk}}\\
+N_{max}: & \text{maximum sample size}
 \phi : & \text{desired DLT}\\
 \phi_1: & \text{lower DLT boundary}\\
 \phi_2: & \text{upper DLT boundary}\\
@@ -35,7 +36,12 @@ A_D: & \text{dose de-escalating set}\\
 \end{aligned}
 $$
 
+## Trial Design
 
-# Trial Schema
+The BOIN-COMB shares the same essence as BOIN single drug, except for that during escalation and de-escalation we have to pick one drug combination from two choices. We give cohorts of participants with starting dose level of drug combination, when observed DLT rate $p_{jk}$ at current drug combination is smaller than $\lambda_e$, then we escalating the next dose level to $A_E$, and pick the combination with the largest probability that DLT rate falls in $(\lambda_e, \lambda_d)$; similarly, when $p_{jk}$ is larger than $\lambda_d$, then we de-escalating the next dose level to $A_D$, and pick the combination with the largest probability that DLT rate falls in $(\lambda_e, \lambda_d)$; If $p_{jk} \in (\lambda_e, \lambda_d)$ then retain current dose level and continue next cohort. Trial will be terminated if reach maximum sample size $N_{max}$ or excess safe toxicity.
+
+## Trial Schema
+
+To better illustrate the trial procedure, here's the flow-chart of BOIN-COMB:
 
 
