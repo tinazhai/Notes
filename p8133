@@ -45,3 +45,7 @@ The BOIN-COMB shares the same essence as BOIN single drug, except for that durin
 To better illustrate the trial procedure, here's the flow-chart of BOIN-COMB:
 
 
+# Discussion
+
+When conducting real phase I clinical trial, we actually unable to know the actual true DLT rate of each drug combination, and the distribution of true probability can affect much on the selection accuracy and relevant operating characteristics, under such circumstances, choosing a desired target DLT rate $\phi$ blindly may lead to very low accuracy of estimating MTD. One way to improve this issue is to collect as much prior study data as possible, and ask professional suggestion about drug combination usage from clinicians, then make statistical plan base on available data and preliminary study. 
+One shortage of this project is, I only compare the simulation output using different BOIN parameters setting, potential improvement is to compare performance of different design methods to BOIN design. Although various researches have claimed that BOIN generally has a better performance, but in this specific case and clinical setting, there's chances that other design methods may overcome BOIN's accuracy of MTD selection. 
